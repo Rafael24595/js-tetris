@@ -95,7 +95,7 @@ function random_block() {
 
 function increment_score(increment) {
     const score_container = document.getElementById("score-value");
-    const score = parseInt(score_container.innerText, 10) + 100;
+    const score = parseInt(score_container.innerText, 10) + increment;
     score_container.innerText = score;
 }
 
