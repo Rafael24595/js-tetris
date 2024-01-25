@@ -1,12 +1,46 @@
 const STATUS_COLLISION = -1;
 const STATUS_SUCCESS = 1;
 
+const STATUS_KO = -1;
+const STATUS_OK = 1;
+
 const FIELD_VOID = 0;
 const FIELD_DYNAMIC = 1;
 
+const BLOCKS = [
+    [
+        [1, 1],
+        [1, 1],
+    ],
+    [
+        [1, 0, 0],
+        [1, 1, 1],
+    ],
+    [
+        [0, 0, 1],
+        [1, 1, 1],
+    ],
+    [
+        [0, 1, 0],
+        [1, 1, 1],
+    ],
+    [
+        [1, 1, 0],
+        [0, 1, 1],
+    ],
+    [
+        [0, 1, 1],
+        [1, 1, 0],
+    ],
+    [
+        [1, 1, 1, 1],
+    ],
+];
+
 let run = true;
-let height = 30;
-let width = 25;
+
+let height = 31;
+let width = 26;
 
 let panel;
 
@@ -16,14 +50,13 @@ window.onkeydown = move;
 function start() {
 
     panel = new Panel(height, width);
-    let block = new Block(square, 2, 12, 0);
+    let block = random_block();
 
     panel.set_block(block);
 
-    /*setInterval(()=> {
-        console.log("move!")
-        panel.update()
-    }, 500)*/
+    run = setInterval(()=> {
+        panel.move_block_y(1);
+    }, 500);
 
 }
 
@@ -38,8 +71,18 @@ function move(event) {
         panel.move_block_y(1);
     }
     if(event.key == "ArrowUp") {
-        panel.move_block_y(-1);
+        //panel.move_block_y(-1);
     }
+    if(event.key == "r") {
+        panel.rotate_block();
+    }
+}
+
+function random_block() {
+    const index = Math.floor(Math.random() * BLOCKS.length);
+    const color =  Math.floor(Math.random() * (9 - 2 + 1)) + 2;
+    console.log(color)
+    return new Block(BLOCKS[index], color, 12, 0);
 }
 
 class Panel {
@@ -47,19 +90,15 @@ class Panel {
     height = 0;
     width = 0;
 
+    score = 0;
+
     matrix = [];
     block = undefined;
 
     constructor(height, width) {
-        this.height = height
-        this.width = width
-        for(var i = 0; i < height; i++) {
-            let row = []
-            for(var j = 0; j < width; j++) {
-                row.push(0);
-            }
-            this.matrix.push(row);
-        }
+        this.height = height;
+        this.width = width;
+        this.matrix = this.new_table();
     }
 
     draw() {
@@ -73,8 +112,11 @@ class Panel {
                 let field = document.createElement("td");
                 field.textContent = panel_field;
                 field.classList.add("color-" + panel_field);
+                if(panel_field != 0) {
+                    field.classList.add("text-border");
+                }
                 if(panel_field == FIELD_DYNAMIC) {
-                    field.classList.add("dynamic-element");
+                    field.classList.add("color-" + this.block.color);
                 }
                 row.appendChild((field));
             }
@@ -97,20 +139,21 @@ class Panel {
     update_block(force_field) {
         for (const [index_y, row] of this.block.block.entries()) {
             for (const [index_x, field] of row.entries()) {
-
-                const height = this.block.y + index_y;
-                const ok_height = 0 <= height && height < this.height;
-
-                const width = this.block.x + index_x;
-                const ok_width = 0 <= width && width < this.width;
-
-                const is_void = ok_height && this.matrix[this.block.y + index_y][this.block.x + index_x] < 2;
-                
-                if(ok_height && ok_width && is_void) {
-                    const value = force_field != undefined ? force_field : field;
-                    this.matrix[this.block.y + index_y][this.block.x + index_x] = value;
-                } else {
-                    return STATUS_COLLISION;
+                if(field != 0) {
+                    const height = this.block.y + index_y;
+                    const ok_height = 0 <= height && height < this.height;
+    
+                    const width = this.block.x + index_x;
+                    const ok_width = 0 <= width && width < this.width;
+    
+                    const is_void = ok_height && this.matrix[this.block.y + index_y][this.block.x + index_x] < 2;
+                    
+                    if(ok_height && ok_width && is_void) {
+                        const value = force_field != undefined ? force_field : field;
+                        this.matrix[this.block.y + index_y][this.block.x + index_x] = value;
+                    } else {
+                        return STATUS_COLLISION;
+                    }
                 }
             }    
         }
@@ -119,15 +162,15 @@ class Panel {
 
     fix_block() {
         this.update_block(this.block.color);
-        this.block = new Block(square, 2, 12, 0);
-        this.update_block();
-        this.draw();
+        this.block = random_block();
+        this.set_block(this.block);
     }  
 
     move_block_x(increment) {
         this.clean_block()
         this.block.x = this.block.x + increment
         if(this.update_block() == STATUS_COLLISION) {
+            this.clean_block();
             this.block.x = this.block.x + (increment * - 1)
             this.update_block();
         }
@@ -143,9 +186,61 @@ class Panel {
             this.update_block();
             if(increment > 0 ) {
                 this.fix_block();
+                this.check_rows();
             }
         }
         this.draw();
+    }
+
+    rotate_block() {
+        this.clean_block();
+        this.block.rotate();
+        this.update_block();
+        this.draw();
+    }
+
+    check_rows() {
+        for (let index = this.matrix.length -1; index >= 0; index--) {
+            const row = this.matrix[index];
+            const is_filled = this.check_row(row);
+            if(is_filled == STATUS_OK) {
+                this.remove_row(index);
+                index = index + 1;
+            }
+        }
+    }
+
+    check_row(row) {
+        let element;
+        for (const field of row) {
+            if(element == undefined) {
+                element = field;
+            }
+            if(element != field) {
+                return STATUS_KO;
+            }
+        }
+        return element == FIELD_VOID ? STATUS_KO : STATUS_OK;
+    }
+
+    remove_row(index) {
+        this.clean_block();
+        this.matrix.splice(index, 1);
+        this.matrix.unshift(this.new_row());
+        this.update_block();
+        this.draw();
+    }
+
+    new_table() {
+        let table = new Array(this.height);
+        table.fill([]);
+        return table.map((_, index) => table[index] = this.new_row());
+    }
+
+    new_row() {
+        let row = new Array(this.width);
+        row.fill(FIELD_VOID);
+        return row;
     }
 
 }
@@ -164,9 +259,17 @@ class Block {
         this.y = y;
     }
 
-}
+    rotate() {
+        let result = [];
+        for (let x = 0; x < this.block[0].length; x++) {
+            let row = [];
+            for (let y = this.block.length - 1; 0 <= y; y--) {
+                const value = this.block[y][x];
+                row.push(value)
+            }
+            result.push(row)
+        }
+        this.block = result;
+    }
 
-const square = [
-    [1, 1],
-    [1, 1],
-]
+}

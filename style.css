@@ -8,7 +8,48 @@
     color: red;
 }
 
+.text-border {
+    text-shadow: 
+        0px 0px 2px black, 0px 0px 2px black, 0px 0px 2px black, 
+        0px 0px 2px black, 0px 0px 2px black, 0px 0px 2px black;
+}
+
 .color-2 {
     font-weight: bold;
     color: blue;
+}
+
+.color-3 {
+    font-weight: bold;
+    color: green;
+}
+
+.color-4 {
+    font-weight: bold;
+    color: red;
+}
+
+.color-5 {
+    font-weight: bold;
+    color: yellow;
+}
+
+.color-6 {
+    font-weight: bold;
+    color: purple;
+}
+
+.color-7 {
+    font-weight: bold;
+    color: orange;
+}
+
+.color-8 {
+    font-weight: bold;
+    color: deeppink;
+}
+
+.color-9 {
+    font-weight: bold;
+    color: cyan;
 }
