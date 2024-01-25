@@ -7,7 +7,8 @@ const STATUS_OK = 1;
 const FIELD_VOID = 0;
 const FIELD_DYNAMIC = 1;
 
-const debug = false;
+const EXECUTION_STOPPED = "Stopped";
+const EXECUTION_RUNNING = "Running";
 
 const BLOCKS = [
     [
@@ -39,7 +40,7 @@ const BLOCKS = [
     ],
 ];
 
-let run = true;
+let execution = undefined;
 
 let height = 31;
 let width = 20;
@@ -47,39 +48,49 @@ let width = 20;
 let speed = 500;
 let xtreme_difficult = false;
 
+let debug = false;
+
 let panel;
 
-window.onload = start;
+window.onload = start_execution;
 window.onkeydown = move;
 
-function start() {
-
+function start_execution() {
     panel = new Panel(height, width);
-    let block = random_block();
 
+    const block = random_block();
     panel.set_block(block);
 
-    run = setInterval(()=> {
+    change_status(EXECUTION_RUNNING);
+
+    execution = setInterval(()=> {
         panel.move_block_y(1);
     }, speed);
+}
 
+function stop_execution() {
+    clearInterval(execution);
+    execution = undefined;
+    change_status(EXECUTION_STOPPED);
 }
 
 function move(event) {
-    if(event.key == "ArrowRight") {
-        panel.move_block_x(1);
-    }
-    if(event.key == "ArrowLeft") {
-        panel.move_block_x(-1);
-    }
-    if(event.key == "ArrowDown") {
-        panel.move_block_y(1);
-    }
-    if(event.key == "ArrowUp") {
-        //panel.move_block_y(-1);
-    }
-    if(event.key == "r") {
-        panel.rotate_block();
+    if(execution != undefined) {
+        if(event.key == "ArrowRight") {
+            panel.move_block_x(1);
+        }
+        if(event.key == "ArrowLeft") {
+            panel.move_block_x(-1);
+        }
+        if(event.key == "ArrowDown") {
+            panel.move_block_y(1);
+        }
+        if(event.key == "ArrowUp") {
+            //panel.move_block_y(-1);
+        }
+        if(event.key == "r") {
+            panel.rotate_block();
+        }
     }
 }
 
@@ -87,7 +98,7 @@ function random_block() {
     const index = Math.floor(Math.random() * BLOCKS.length);
     const color =  Math.floor(Math.random() * (9 - 2 + 1)) + 2;
 
-    const middle_block = BLOCKS[index].length / 2;
+    const middle_block = BLOCKS[index][0].length / 2;
     const middle_panel = width / 2;
     const position = Math.round(middle_panel - middle_block);
     return new Block(BLOCKS[index], color, position, 0);
@@ -97,6 +108,11 @@ function increment_score(increment) {
     const score_container = document.getElementById("score-value");
     const score = parseInt(score_container.innerText, 10) + increment;
     score_container.innerText = score;
+}
+
+function change_status(status) {
+    const stauts_container = document.getElementById("execution-status");
+    stauts_container.innerText = status;
 }
 
 class Panel {
@@ -154,7 +170,11 @@ class Panel {
 
     set_block(block) {
         this.block = block;
-        this.update_block();
+        const blocked = this.update_block();
+        if(blocked == STATUS_COLLISION) {
+            stop_execution();
+            return;
+        }
         this.draw();
     }
 
