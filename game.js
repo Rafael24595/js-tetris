@@ -16,7 +16,7 @@ window.onkeydown = move;
 function start() {
 
     panel = new Panel(height, width);
-    let block = new Block(square, 12, 0);
+    let block = new Block(square, 2, 12, 0);
 
     panel.set_block(block);
 
@@ -72,6 +72,7 @@ class Panel {
             for (const panel_field of panel_row) {
                 let field = document.createElement("td");
                 field.textContent = panel_field;
+                field.classList.add("color-" + panel_field);
                 if(panel_field == FIELD_DYNAMIC) {
                     field.classList.add("dynamic-element");
                 }
@@ -103,7 +104,9 @@ class Panel {
                 const width = this.block.x + index_x;
                 const ok_width = 0 <= width && width < this.width;
 
-                if(ok_height && ok_width) {
+                const is_void = ok_height && this.matrix[this.block.y + index_y][this.block.x + index_x] < 2;
+                
+                if(ok_height && ok_width && is_void) {
                     const value = force_field != undefined ? force_field : field;
                     this.matrix[this.block.y + index_y][this.block.x + index_x] = value;
                 } else {
@@ -112,6 +115,13 @@ class Panel {
             }    
         }
         return STATUS_SUCCESS;
+    }  
+
+    fix_block() {
+        this.update_block(this.block.color);
+        this.block = new Block(square, 2, 12, 0);
+        this.update_block();
+        this.draw();
     }  
 
     move_block_x(increment) {
@@ -125,13 +135,17 @@ class Panel {
     }
     
     move_block_y(increment) {
-        this.clean_block()
+        this.clean_block();
         this.block.y = this.block.y + increment
         if(this.update_block() == STATUS_COLLISION) {
+            this.clean_block();
             this.block.y = this.block.y + (increment * - 1)
             this.update_block();
+            if(increment > 0 ) {
+                this.fix_block();
+            }
         }
-        this.draw(panel);
+        this.draw();
     }
 
 }
@@ -139,11 +153,13 @@ class Panel {
 class Block {
 
     block = [];
+    color = 0;
     x = 0;
     y = 0;
 
-    constructor(block, x, y) {
+    constructor(block, color, x, y) {
         this.block = block;
+        this.color = color;
         this.x = x;
         this.y = y;
     }
