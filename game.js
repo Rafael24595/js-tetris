@@ -7,6 +7,8 @@ const STATUS_OK = 1;
 const FIELD_VOID = 0;
 const FIELD_DYNAMIC = 1;
 
+const debug = false;
+
 const BLOCKS = [
     [
         [1, 1],
@@ -40,7 +42,10 @@ const BLOCKS = [
 let run = true;
 
 let height = 31;
-let width = 26;
+let width = 20;
+
+let speed = 500;
+let xtreme_difficult = false;
 
 let panel;
 
@@ -56,7 +61,7 @@ function start() {
 
     run = setInterval(()=> {
         panel.move_block_y(1);
-    }, 500);
+    }, speed);
 
 }
 
@@ -81,8 +86,17 @@ function move(event) {
 function random_block() {
     const index = Math.floor(Math.random() * BLOCKS.length);
     const color =  Math.floor(Math.random() * (9 - 2 + 1)) + 2;
-    console.log(color)
-    return new Block(BLOCKS[index], color, 12, 0);
+
+    const middle_block = BLOCKS[index].length / 2;
+    const middle_panel = width / 2;
+    const position = Math.round(middle_panel - middle_block);
+    return new Block(BLOCKS[index], color, position, 0);
+}
+
+function increment_score(increment) {
+    const score_container = document.getElementById("score-value");
+    const score = parseInt(score_container.innerText, 10) + 100;
+    score_container.innerText = score;
 }
 
 class Panel {
@@ -110,14 +124,26 @@ class Panel {
             let row = document.createElement("tr");
             for (const panel_field of panel_row) {
                 let field = document.createElement("td");
-                field.textContent = panel_field;
-                field.classList.add("color-" + panel_field);
-                if(panel_field != 0) {
-                    field.classList.add("text-border");
+                let value_container = document.createElement("div");
+
+                if(debug) {
+                    value_container.textContent = panel_field;
+                    value_container.classList.add("debug-text");
                 }
+
+                value_container.classList.add("color-" + panel_field);
+                value_container.classList.add("block-fragment");
+
+                if(panel_field == 0) {
+                    value_container.classList.add("void");
+                }
+
                 if(panel_field == FIELD_DYNAMIC) {
-                    field.classList.add("color-" + this.block.color);
+                    value_container.classList.add("dynamic");
+                    value_container.classList.add("color-" + this.block.color);
                 }
+                
+                field.appendChild(value_container);
                 row.appendChild((field));
             }
             table.appendChild(row);
@@ -206,6 +232,7 @@ class Panel {
             if(is_filled == STATUS_OK) {
                 this.remove_row(index);
                 index = index + 1;
+                increment_score(100);
             }
         }
     }
@@ -216,8 +243,15 @@ class Panel {
             if(element == undefined) {
                 element = field;
             }
-            if(element != field) {
-                return STATUS_KO;
+            if(xtreme_difficult) {
+                if(element != field) {
+                    return STATUS_KO;
+                }
+            }
+            if(!xtreme_difficult) {
+                if(field == 0) {
+                    return STATUS_KO;
+                }
             }
         }
         return element == FIELD_VOID ? STATUS_KO : STATUS_OK;

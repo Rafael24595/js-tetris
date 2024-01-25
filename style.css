@@ -1,55 +1,75 @@
-/*table, th, td {
-    border: 1px solid;
-    padding: 2px;
-}*/
+.block-fragment {
+    width: 15px;
+    height: 15px;
+}
+
+.debug-text {
+    color: black !important;
+    visibility: visible !important;
+    background-color: aliceblue;
+}
+
+.void {
+    visibility: hidden;
+}
+
+#panel {
+    color: white;
+    background-color: black;
+    display: inline-block;
+    padding: 10px;
+}
 
 .dynamic-element {
     font-weight: bold;
     color: red;
-}
-
-.text-border {
-    text-shadow: 
-        0px 0px 2px black, 0px 0px 2px black, 0px 0px 2px black, 
-        0px 0px 2px black, 0px 0px 2px black, 0px 0px 2px black;
+    background-color: red;
 }
 
 .color-2 {
     font-weight: bold;
     color: blue;
+    background-color: blue;
 }
 
 .color-3 {
     font-weight: bold;
     color: green;
+    background-color: green;
 }
 
 .color-4 {
     font-weight: bold;
     color: red;
+    background-color: red;
 }
 
 .color-5 {
     font-weight: bold;
     color: yellow;
+    background-color: yellow;
 }
 
 .color-6 {
     font-weight: bold;
     color: purple;
+    background-color: purple;
 }
 
 .color-7 {
     font-weight: bold;
     color: orange;
+    background-color: orange;
 }
 
 .color-8 {
     font-weight: bold;
     color: deeppink;
+    background-color: deeppink;
 }
 
 .color-9 {
     font-weight: bold;
     color: cyan;
+    background-color: cyan;
 }
