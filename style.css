@@ -7,6 +7,7 @@
     color: black !important;
     visibility: visible !important;
     background-color: aliceblue;
+    text-align: center;
 }
 
 .void {
@@ -24,6 +25,7 @@
     background-color: black;
     display: inline-block;
     padding: 10px;
+    user-select: none;
 }
 
 #result {
@@ -35,6 +37,7 @@
     margin-top: 5px;
     padding-left: 10px;
     padding-right: 10px;
+    user-select: none;
 }
 
 .dynamic-element {

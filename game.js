@@ -149,6 +149,7 @@ class Tetris {
         const middle_block = BLOCKS[index][0].length / 2;
         const middle_panel = this.width / 2;
         const position = Math.round(middle_panel - middle_block);
+
         return new Block(BLOCKS[index], color, position, 0);
     }
 
@@ -277,7 +278,7 @@ class Tetris {
 
             const status = this.check_row(row);
             if(status == STATUS_KO) {
-                return;
+                continue;
             }
 
             this.remove_row(index);
@@ -367,9 +368,9 @@ class Block {
             let row = [];
             for (let y = this.block.length - 1; 0 <= y; y--) {
                 const value = this.block[y][x];
-                row.push(value)
+                row.push(value);
             }
-            result.push(row)
+            result.push(row);
         }
         return new Block(result, this.color, this.x, this.y);
     }
