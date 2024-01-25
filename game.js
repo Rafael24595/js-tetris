@@ -3,6 +3,7 @@ const STATUS_SUCCESS = 1;
 
 const STATUS_KO = -1;
 const STATUS_OK = 1;
+const STATUS_OK_PLUS = 2;
 
 const FIELD_VOID = 0;
 const FIELD_DYNAMIC = 1;
@@ -48,104 +49,107 @@ const MESSAGES = [
     "Follow the train!"
 ];
 
-let execution = undefined;
+const MESSAGES_PLUS = [
+    "Colorful!",
+    "Over the rainbow!",
+    "Incredible!"
+];
 
-let height = 31;
-let width = 20;
 
-let speed = 500;
-let xtreme_difficult = false;
+let game;;
 
-let debug = false;
+window.onload = start_game;
 
-let panel;
-
-window.onload = start_execution;
-window.onkeydown = move;
-
-function start_execution() {
-    panel = new Panel(height, width);
-
-    const block = random_block();
-    panel.set_block(block);
-
-    change_status(EXECUTION_RUNNING);
-
-    execution = setInterval(()=> {
-        panel.move_block_y(1);
-    }, speed);
+function start_game() {
+    game = new Tetris(31, 20, 350);
+    //game.active_debug();
+    game.launch();
 }
 
-function stop_execution() {
-    clearInterval(execution);
-    execution = undefined;
-    change_status(EXECUTION_STOPPED);
-    swow_message("Game Over!")
-}
 
-function move(event) {
-    if(execution != undefined) {
-        if(event.key == "ArrowRight") {
-            panel.move_block_x(1);
-        }
-        if(event.key == "ArrowLeft") {
-            panel.move_block_x(-1);
-        }
-        if(event.key == "ArrowDown") {
-            panel.move_block_y(1);
-        }
-        if(event.key == "ArrowUp") {
-            //panel.move_block_y(-1);
-        }
-        if(event.key == "r") {
-            panel.rotate_block();
-        }
-    }
-}
+class Tetris {
 
-function random_block() {
-    const index = Math.floor(Math.random() * BLOCKS.length);
-    const color =  Math.floor(Math.random() * (9 - 2 + 1)) + 2;
+    execution;
 
-    const middle_block = BLOCKS[index][0].length / 2;
-    const middle_panel = width / 2;
-    const position = Math.round(middle_panel - middle_block);
-    return new Block(BLOCKS[index], color, position, 0);
-}
+    height;
+    width;
+    matrix;
+    block;
 
-function increment_score(increment) {
-    const score_container = document.getElementById("execution-score");
-    const score = parseInt(score_container.innerText, 10) + increment;
-    score_container.innerText = score;
-}
+    information;
 
-function change_status(status) {
-    const stauts_container = document.getElementById("execution-status");
-    stauts_container.innerText = status;
-}
+    speed;
+    xtreme_difficult;
 
-function swow_message(message) {
-    const message_container = document.getElementById("execution-message");
-    message_container.innerHTML = message;
-    setTimeout(()=> {
-        message_container.innerHTML = ""
-    }, 1000);
-}
+    debug;
 
-class Panel {
-
-    height = 0;
-    width = 0;
-
-    score = 0;
-
-    matrix = [];
-    block = undefined;
-
-    constructor(height, width) {
+    constructor(height, width, speed) {
+        this.execution = undefined;
         this.height = height;
         this.width = width;
         this.matrix = this.new_table();
+        this.block = undefined;
+        this.information = new Information();
+        this.speed = speed;
+        this.xtreme_difficult = false;
+        this.debug = false;
+    }
+
+    launch() {    
+        const block = this.random_block();
+        this.set_block(block);
+    
+        this.information.change_status(EXECUTION_RUNNING);
+        window.onkeydown = this.move.bind(this);
+    
+        this.execution = setInterval(()=> {
+            this.move_block_y(1);
+        }, this.speed);
+    }
+
+    active_debug() {
+        this.debug = true;
+    }
+    
+    deactive_debug() {
+        this.debug = false;
+    }
+
+    stop_execution() {
+        clearInterval(this.execution);
+        this.execution = undefined;
+        this.information.change_status(EXECUTION_STOPPED);
+        this.information.swow_message("Game Over!")
+    }
+    
+    move(event) {
+        if(this.execution != undefined) {
+            if(event.key == "ArrowRight") {
+                this.move_block_x(1);
+            }
+            if(event.key == "ArrowLeft") {
+                this.move_block_x(-1);
+            }
+            if(event.key == "ArrowDown") {
+                this.move_block_y(1);
+            }
+            if(event.key == "ArrowUp") {
+                //this.move_block_y(-1);
+            }
+            if(event.key == "r") {
+                this.rotate_block();
+            }
+        }
+    }
+    
+    random_block() {
+        const index = Math.floor(Math.random() * BLOCKS.length);
+        const color =  Math.floor(Math.random() * (9 - 2 + 1)) + 2;
+    
+        const middle_block = BLOCKS[index][0].length / 2;
+        const middle_panel = this.width / 2;
+        const position = Math.round(middle_panel - middle_block);
+        return new Block(BLOCKS[index], color, position, 0);
     }
 
     draw() {
@@ -159,7 +163,7 @@ class Panel {
                 let field = document.createElement("td");
                 let value_container = document.createElement("div");
 
-                if(debug) {
+                if(this.debug) {
                     value_container.textContent = panel_field;
                     value_container.classList.add("debug-text");
                 }
@@ -189,8 +193,8 @@ class Panel {
         this.block = block;
         const blocked = this.update_block();
         if(blocked == STATUS_COLLISION) {
-            stop_execution();
-            return;
+            this.clean_block();
+            this.stop_execution();
         }
         this.draw();
     }
@@ -225,12 +229,12 @@ class Panel {
 
     fix_block() {
         this.update_block(this.block.color);
-        this.block = random_block();
+        this.block = this.random_block();
         this.set_block(this.block);
     }  
 
     move_block_x(increment) {
-        this.clean_block()
+        this.clean_block();
         this.block.x = this.block.x + increment
         if(this.update_block() == STATUS_COLLISION) {
             this.clean_block();
@@ -257,22 +261,41 @@ class Panel {
 
     rotate_block() {
         this.clean_block();
-        this.block.rotate();
-        this.update_block();
+        const original = this.block;
+        this.block = this.block.rotate();
+        if(this.update_block() == STATUS_COLLISION) {
+            this.clean_block();
+            this.block = original;
+            this.update_block();
+        }
         this.draw();
     }
 
     check_rows() {
         for (let index = this.matrix.length -1; index >= 0; index--) {
             const row = this.matrix[index];
-            const is_filled = this.check_row(row);
-            if(is_filled == STATUS_OK) {
-                this.remove_row(index);
-                index = index + 1;
-                increment_score(100);
-                const position = Math.floor(Math.random() * MESSAGES.length);
-                swow_message(MESSAGES[position]);
+
+            const status = this.check_row(row);
+            if(status == STATUS_KO) {
+                return;
             }
+
+            this.remove_row(index);
+            index = index + 1;
+
+            this.information.increment_score(100 * status);
+
+            let message = "";
+            if(status == STATUS_OK) {
+                const position = Math.floor(Math.random() * MESSAGES.length);
+                message = MESSAGES[position];
+            }
+            if(status == STATUS_OK_PLUS) {
+                const position = Math.floor(Math.random() * MESSAGES_PLUS.length);
+                message = MESSAGES_PLUS[position];
+            }
+
+            this.information.swow_message(message);
         }
     }
 
@@ -282,18 +305,24 @@ class Panel {
             if(element == undefined) {
                 element = field;
             }
-            if(xtreme_difficult) {
-                if(element != field) {
+
+            if(element != field) {
+                element = -1;
+                if(this.xtreme_difficult) {
                     return STATUS_KO;
                 }
             }
-            if(!xtreme_difficult) {
-                if(field == 0) {
-                    return STATUS_KO;
-                }
+
+            if(field == 0) {
+                return STATUS_KO;
             }
         }
-        return element == FIELD_VOID ? STATUS_KO : STATUS_OK;
+
+        if(element == -1) {
+            return STATUS_OK
+        }
+
+        return STATUS_OK_PLUS;
     }
 
     remove_row(index) {
@@ -342,7 +371,40 @@ class Block {
             }
             result.push(row)
         }
-        this.block = result;
+        return new Block(result, this.color, this.x, this.y);
+    }
+
+    rotate_copy() {
+        this.block = this.rotate_copy().block;
+    }
+
+}
+
+class Information {
+
+    score;
+
+    constructor() {
+        this.score = 0;
+    }
+
+    increment_score(increment) {
+        const score_container = document.getElementById("execution-score");
+        this.score = this.score + increment;
+        score_container.innerText = this.score;
+    }
+    
+    change_status(status) {
+        const stauts_container = document.getElementById("execution-status");
+        stauts_container.innerText = status;
+    }
+    
+    swow_message(message) {
+        const message_container = document.getElementById("execution-message");
+        message_container.innerHTML = message;
+        setTimeout(()=> {
+            message_container.innerHTML = ""
+        }, 1000);
     }
 
 }
