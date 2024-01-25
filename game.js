@@ -40,6 +40,14 @@ const BLOCKS = [
     ],
 ];
 
+const MESSAGES = [
+    "Nice!",
+    "Fabulous!",
+    "Great!",
+    "Marvelous!",
+    "Follow the train!"
+];
+
 let execution = undefined;
 
 let height = 31;
@@ -72,6 +80,7 @@ function stop_execution() {
     clearInterval(execution);
     execution = undefined;
     change_status(EXECUTION_STOPPED);
+    swow_message("Game Over!")
 }
 
 function move(event) {
@@ -105,7 +114,7 @@ function random_block() {
 }
 
 function increment_score(increment) {
-    const score_container = document.getElementById("score-value");
+    const score_container = document.getElementById("execution-score");
     const score = parseInt(score_container.innerText, 10) + increment;
     score_container.innerText = score;
 }
@@ -113,6 +122,14 @@ function increment_score(increment) {
 function change_status(status) {
     const stauts_container = document.getElementById("execution-status");
     stauts_container.innerText = status;
+}
+
+function swow_message(message) {
+    const message_container = document.getElementById("execution-message");
+    message_container.innerHTML = message;
+    setTimeout(()=> {
+        message_container.innerHTML = ""
+    }, 1000);
 }
 
 class Panel {
@@ -253,6 +270,8 @@ class Panel {
                 this.remove_row(index);
                 index = index + 1;
                 increment_score(100);
+                const position = Math.floor(Math.random() * MESSAGES.length);
+                swow_message(MESSAGES[position]);
             }
         }
     }
