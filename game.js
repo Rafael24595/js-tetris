@@ -96,13 +96,16 @@ class Tetris {
     }
 
     launch() {    
+        this.information.insert_trace("Game started.");
+
         const block = this.random_block();
         this.set_block(block);
-    
+
         this.information.change_status(EXECUTION_RUNNING);
         window.onkeydown = this.move.bind(this);
     
         this.execution = setInterval(()=> {
+
             this.move_block_y(1);
         }, this.speed);
     }
@@ -119,7 +122,8 @@ class Tetris {
         clearInterval(this.execution);
         this.execution = undefined;
         this.information.change_status(EXECUTION_STOPPED);
-        this.information.swow_message("Game Over!")
+        this.information.insert_trace("Game stopped.");
+        this.information.swow_message("Game Over!");
     }
     
     move(event) {
@@ -197,6 +201,11 @@ class Tetris {
             this.clean_block();
             this.stop_execution();
         }
+
+        if(blocked != STATUS_COLLISION) {
+            this.information.increment_blocks();
+        }
+
         this.draw();
     }
 
@@ -288,10 +297,12 @@ class Tetris {
 
             let message = "";
             if(status == STATUS_OK) {
+                this.information.insert_trace("Line removed.");
                 const position = Math.floor(Math.random() * MESSAGES.length);
                 message = MESSAGES[position];
             }
             if(status == STATUS_OK_PLUS) {
+                this.information.insert_trace("Color line removed."); 
                 const position = Math.floor(Math.random() * MESSAGES_PLUS.length);
                 message = MESSAGES_PLUS[position];
             }
@@ -320,7 +331,7 @@ class Tetris {
         }
 
         if(element == -1) {
-            return STATUS_OK
+            return STATUS_OK;
         }
 
         return STATUS_OK_PLUS;
@@ -331,6 +342,7 @@ class Tetris {
         this.matrix.splice(index, 1);
         this.matrix.unshift(this.new_row());
         this.update_block();
+        this.information.increment_lines();
         this.draw();
     }
 
@@ -384,9 +396,17 @@ class Block {
 class Information {
 
     score;
+    blocks;
+    lines;
+    start;
+    traces;
 
     constructor() {
         this.score = 0;
+        this.blocks = 0;
+        this.lines = 0;
+        this.start = Date.now();
+        this.traces = [];
     }
 
     increment_score(increment) {
@@ -406,6 +426,47 @@ class Information {
         setTimeout(()=> {
             message_container.innerHTML = ""
         }, 1000);
+    }
+
+    insert_trace(trace) {
+        this.traces.push(trace);
+        this.print_data();
+    }
+
+    increment_blocks() {
+        this.blocks = this.blocks + 1;
+        this.print_data();
+    }
+
+    increment_lines() {
+        this.lines = this.lines + 1;
+        this.print_data();
+    }
+
+    print_data() {
+        const score_container = document.getElementById("r-sidebar-body");
+        score_container.innerHTML = "";
+
+        const blocks = document.createElement("span");
+        blocks.classList.add("trace");
+        blocks.textContent = "# Blocks spawned: " + this.blocks;
+
+        score_container.appendChild(blocks);
+
+        const lines = document.createElement("span");
+        lines.classList.add("trace");
+        lines.textContent = "# Lines removed: " + this.lines;
+
+        score_container.appendChild(lines);
+
+        score_container.appendChild(document.createElement("br"));
+
+        for (const message of this.traces) {
+            const node = document.createElement("span");
+            node.classList.add("trace");
+            node.innerHTML = "&nbsp;&nbsp;> " + message;
+            score_container.appendChild(node);
+        }
     }
 
 }

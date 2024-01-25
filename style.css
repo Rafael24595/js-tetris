@@ -16,8 +16,48 @@
 
 #game-container {
     display: flex;
+    flex-direction: row;
+}
+
+#game-container-body {
+    display: flex;
     flex-direction: column;
     width: fit-content;
+}
+
+#game-container-r-sidebar {
+    display: flex;
+    width: 200px;
+    margin-left: 5px;
+    flex-direction: column;
+}
+
+#r-sidebar-title {
+    background-color: black;
+    color: white;
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+#r-sidebar-title h3 {
+    margin: 7px;
+}
+
+.trace {
+    color: white;
+    font-weight: bold;
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+#r-sidebar-body {
+    background-color: black;
+    flex: 1 1 auto;
+    height: 0px;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    overflow-y: scroll;
 }
 
 #panel {
@@ -92,4 +132,20 @@
     font-weight: bold;
     color: cyan;
     background-color: cyan;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+  
+::-webkit-scrollbar-track {
+    background: black; 
+}
+
+::-webkit-scrollbar-thumb {
+    background: gainsboro; 
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: darkgrey; 
 }
