@@ -56,11 +56,14 @@ const MESSAGES_PLUS = [
 ];
 
 
-let game;;
+let game;
 
 window.onload = start_game;
 
 function start_game() {
+    if(game != undefined) {
+        game.stop_execution();
+    }
     game = new Tetris(31, 20, 350);
     //game.active_debug();
     game.launch();
