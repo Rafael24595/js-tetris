@@ -105,7 +105,9 @@ class Tetris {
         this.set_block(block);
 
         this.information.change_status(EXECUTION_RUNNING);
-        window.onkeydown = this.move.bind(this);
+
+        new KeyControl(this.move.bind(this))
+        new TouchControl(this.move.bind(this));
     
         this.execution = setInterval(()=> {
 
@@ -129,26 +131,24 @@ class Tetris {
         this.information.swow_message("Game Over!");
     }
     
-    move(event) {
+    move(key) {console.log(key)
         if(this.execution != undefined) {
-            if(event.key == "ArrowRight") {
+            if(key == "Right") {
                 this.move_block_x(1);
             }
-            if(event.key == "ArrowLeft") {
+            if(key == "Left") {
                 this.move_block_x(-1);
             }
-            if(event.key == "ArrowDown") {
+            if(key == "Down") {
                 this.move_block_y(1);
             }
-            if(event.key == "ArrowUp") {
+            if(key == "Up") {
                 //this.move_block_y(-1);
-            }
-            if(event.key == "r") {
                 this.rotate_block();
             }
         }
     }
-    
+
     random_block() {
         const index = Math.floor(Math.random() * BLOCKS.length);
         const color =  Math.floor(Math.random() * (9 - 2 + 1)) + 2;
@@ -469,6 +469,78 @@ class Information {
             node.classList.add("trace");
             node.innerHTML = "&nbsp;&nbsp;> " + message;
             score_container.appendChild(node);
+        }
+    }
+
+}
+
+class KeyControl {
+
+    callback;
+
+    constructor(callback) {
+        this.callback = callback;
+        window.onkeydown = this.move.bind(this);
+    }
+
+    move(event) {
+        if(event.key == "ArrowRight") {
+            this.callback("Right")
+        }
+        if(event.key == "ArrowLeft") {
+            this.callback("Left")
+        }
+        if(event.key == "ArrowDown") {
+            this.callback("Down")
+        }
+        if(event.key == "ArrowUp") {
+            this.callback("Up")
+        }
+    }
+
+}
+
+class TouchControl {
+
+    marginX;
+    marginY;
+
+    startX;
+    startY;
+    callback;
+
+    constructor(callback) {
+        this.marginY = 25;
+        this.marginX = 100;
+        this.callback = callback;
+
+        window.ontouchstart = this.update_start.bind(this);
+        window.ontouchmove = this.touchmove.bind(this);
+    }
+
+    update_start(event) {
+        this.startX = event.touches[0].clientX;
+        this.startY = event.touches[0].clientY;
+    }
+
+    touchmove(event) {
+        const currentX = event.touches[0].clientX;
+        const deltaX = currentX - this.startX;
+
+        const currentY = event.touches[0].clientY;
+        const deltaY = currentY - this.startY;
+    
+        if (deltaX > this.marginX) {
+            this.callback("Right")
+        }
+        if (deltaX < (this.marginX * -1)) {
+            this.callback("Left")
+        }
+        if (deltaY > this.marginY) {
+            this.callback("Down")
+        }
+        if (deltaY < (this.marginY * -1)) {
+            this.callback("Up")
         }
     }
 
