@@ -4,6 +4,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 	"text/template"
 
 	"github.com/labstack/echo/v4"
@@ -24,6 +25,12 @@ func main() {
 		port = "1196"
 	}
 
+	httpsEnabled := false
+	httpsEnabledString := os.Getenv("HTTPS_ENABLED")
+	if strings.EqualFold(httpsEnabledString, "true") {
+		httpsEnabled = true
+	}
+
 	tmpl, err := template.ParseGlob(
 		"./assets/template/*.html",
 	)
@@ -36,12 +43,20 @@ func main() {
 		templates: tmpl,
 	}
 
+	e.Pre(middleware.HTTPSRedirect())
+
 	e.Use(middleware.Logger())
+
 	e.Static("/static", "./assets")
 
 	e.GET("/", index)
 
-	e.Logger.Fatal(e.Start(":" + port))
+	if httpsEnabled {
+		e.Logger.Fatal(e.StartTLS(":"+port, "./cert/server.crt", "./cert/server.key"))
+	} else {
+		e.Logger.Fatal(e.Start(":"+port))
+	}
+
 }
 
 func index(c echo.Context) error {
