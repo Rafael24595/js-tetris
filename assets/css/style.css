@@ -1,4 +1,4 @@
-@media (min-width:320px) {
+@media (max-width:500px) {
     #main-panel{
         transform: scale(0.5);
     }

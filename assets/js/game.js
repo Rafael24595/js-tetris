@@ -131,7 +131,7 @@ class Tetris {
         this.information.swow_message("Game Over!");
     }
     
-    move(key) {console.log(key)
+    move(key) {
         if(this.execution != undefined) {
             if(key == "Right") {
                 this.move_block_x(1);
