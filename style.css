@@ -1,6 +1,7 @@
 html, body {
     height: 100%;
     margin: 0px;
+    font-family: sans-serif;
 }
 
 #main-panel{
@@ -17,7 +18,7 @@ html, body {
     margin-top: 10px;
 }
 
-#replay-button {
+#replay-button, #mute-button {
     margin: 20px;
     padding: 5px;
     padding-left: 10px;
@@ -26,6 +27,16 @@ html, body {
     background-color: lightgray;
     cursor: pointer;
     font-weight: bold;
+}
+
+#button-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.hidden-button {
+     visibility: hidden;
 }
 
 .block-fragment {
@@ -62,14 +73,14 @@ html, body {
     flex-direction: column;
 }
 
-#r-sidebar-title {
+#r-sidebar-title, #keys {
     background-color: black;
     color: white;
     margin-bottom: 5px;
     text-align: center;
 }
 
-#r-sidebar-title h3 {
+#r-sidebar-title h3, #keys h3 {
     margin: 7px;
 }
 
@@ -80,7 +91,7 @@ html, body {
     margin-bottom: 3px;
 }
 
-#r-sidebar-body {
+#r-sidebar-body, #r-sidebar-keys {
     background-color: black;
     flex: 1 1 auto;
     height: 0px;
@@ -88,6 +99,16 @@ html, body {
     flex-direction: column;
     padding: 10px;
     overflow-y: scroll;
+}
+
+#r-sidebar-keys {
+    background-color: black;
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    margin-bottom: 5px;
+    height: 115px;
 }
 
 #panel {
