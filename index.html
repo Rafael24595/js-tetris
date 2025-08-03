@@ -20,7 +20,7 @@
                 </div>
             </div>
             <div id="game-container-r-sidebar">
-                <div id="keys">
+                <div id="r-sidebar-keys-title">
                     <h3>Keys</h3>
                 </div>
                 <div id="r-sidebar-keys">
@@ -28,6 +28,7 @@
                     <span class="trace">Rotate: ⬆️ or <b>R</b></span>
                     <span class="trace">Mirror: <b>Space</b> or <b>M</b></span>
                     <span class="trace">Mute: <b>S</b></span>
+                    <span class="trace">Debug: <b>D</b></span>
                 </div>
                 <div id="r-sidebar-title">
                     <h3>Trace</h3>
@@ -38,9 +39,9 @@
             </div>
         </div>
         <div id="button-footer">
-            <button class="hidden-button">🔊</button>
+            <button id="debug-button" class="icon-button" onclick="game.switch_debug()">🐞</button>
             <button id="replay-button" onclick="start_game()">Replay</button>
-            <button id="mute-button" onclick="switch_mute()">🔈</button>
+            <button id="mute-button" class="icon-button" onclick="game.switch_mute()">🔈</button>
         </div>
     </div>
 </body>

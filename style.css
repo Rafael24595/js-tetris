@@ -18,7 +18,7 @@ html, body {
     margin-top: 10px;
 }
 
-#replay-button, #mute-button {
+#replay-button, #mute-button, #debug-button {
     margin: 20px;
     padding: 5px;
     padding-left: 10px;
@@ -73,14 +73,14 @@ html, body {
     flex-direction: column;
 }
 
-#r-sidebar-title, #keys {
+#r-sidebar-title, #r-sidebar-keys-title {
     background-color: black;
     color: white;
     margin-bottom: 5px;
     text-align: center;
 }
 
-#r-sidebar-title h3, #keys h3 {
+#r-sidebar-title h3, #r-sidebar-keys-title h3 {
     margin: 7px;
 }
 
@@ -108,7 +108,7 @@ html, body {
     flex-direction: column;
     padding: 10px;
     margin-bottom: 5px;
-    height: 115px;
+    height: 145px;
 }
 
 #panel {
@@ -199,4 +199,12 @@ html, body {
 
 ::-webkit-scrollbar-thumb:hover {
     background: darkgrey; 
+}
+
+.grayscale {
+    filter: grayscale(1);
+}
+
+.icon-button {
+    width: 45px;
 }

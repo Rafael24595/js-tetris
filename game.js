@@ -56,38 +56,26 @@ const MESSAGES_PLUS = [
 ];
 
 let globalMute = true;
+let globalDebug = false;
 
 let game;
 
-window.onload = start_game;
+window.onload = () => {
+    start_game();
+    update_mute_icon(globalMute);
+    update_debug_icon(globalDebug);
+};
 
 function start_game() {
     if (game != undefined) {
         game.stop_execution();
     }
     game = new Tetris(31, 20, 350);
-    //game.active_debug();
     game.launch();
 }
 
 
 class Tetris {
-
-    soundGen
-
-    execution;
-
-    height;
-    width;
-    matrix;
-    block;
-
-    information;
-
-    speed;
-    xtreme_difficult;
-
-    debug;
 
     constructor(height, width, speed) {
         this.soundGen = new SoundGenerator().setMute(globalMute);
@@ -99,7 +87,9 @@ class Tetris {
         this.information = new Information();
         this.speed = speed;
         this.xtreme_difficult = false;
-        this.debug = false;
+        this.debug = globalDebug;
+        this.update_mute_icon = update_mute_icon;
+        this.update_debug_icon = update_debug_icon;
     }
 
     launch() {
@@ -119,12 +109,8 @@ class Tetris {
         }, this.speed);
     }
 
-    active_debug() {
-        this.debug = true;
-    }
-
-    deactive_debug() {
-        this.debug = false;
+    setDebug(debug) {
+        this.debug = debug;
     }
 
     stop_execution() {
@@ -161,7 +147,10 @@ class Tetris {
                 this.rotate_block();
             }
             if (event.key == "s") {
-                switch_mute();
+                this.switch_mute();
+            }
+            if (event.key == "d") {
+                this.switch_debug();
             }
         }
     }
@@ -396,6 +385,22 @@ class Tetris {
         return row;
     }
 
+    switch_mute() {
+        globalMute = !this.soundGen.mute;
+        this.soundGen.setMute(globalMute);
+        this.soundGen.play("unmute");
+        this.update_mute_icon(globalMute);
+    }
+
+    switch_debug() {
+        globalDebug = !this.debug;
+        this.setDebug(globalDebug);
+        if(globalDebug) {
+            this.soundGen.play("showdebug");
+        }
+        this.update_debug_icon(globalDebug);
+    }
+
 }
 
 class Block {
@@ -567,6 +572,9 @@ class SoundGenerator {
             case "unmute":
                 this.unmuteCompose();
                 break;
+            case "showdebug":
+                this.showDebugCompose();
+                break;
         }
 
         return this;
@@ -596,19 +604,21 @@ class SoundGenerator {
         return this;
     }
 
-    startCompose() {
-        const now = this.audioCtx.currentTime;
+    noise(duration, when) {
+        const bufferSize = this.audioCtx.sampleRate * duration;
+        const buffer = this.audioCtx.createBuffer(1, bufferSize, this.audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
 
-        this.beep(300, 0.1, "square", now)
-            .beep(400, 0.1, "square", now + 0.15)
-            .beep(500, 0.1, "square", now + 0.3);
-    }
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * 0.2;
+        }
 
-    unmuteCompose() {
-        const now = this.audioCtx.currentTime;
-
-        this.beep(800, 0.05, "square", now)
-            .beep(900, 0.05, "square", now + 0.15);
+        const noiseSource = this.audioCtx.createBufferSource();
+        noiseSource.buffer = buffer;
+        noiseSource.connect(this.audioCtx.destination);
+        noiseSource.start(when);
+        
+        return this;
     }
 
     dropSound(frequency, duration) {
@@ -644,30 +654,42 @@ class SoundGenerator {
         return this;
     }
 
-    noise(duration) {
-        const bufferSize = this.audioCtx.sampleRate * duration;
-        const buffer = this.audioCtx.createBuffer(1, bufferSize, this.audioCtx.sampleRate);
-        const data = buffer.getChannelData(0);
+    startCompose() {
+        const now = this.audioCtx.currentTime;
 
-        for (let i = 0; i < bufferSize; i++) {
-            data[i] = (Math.random() * 2 - 1) * 0.2;
-        }
+        this.beep(300, 0.1, "square", now)
+            .beep(400, 0.1, "square", now + 0.15)
+            .beep(500, 0.1, "square", now + 0.3);
+    }
 
-        const noiseSource = this.audioCtx.createBufferSource();
-        noiseSource.buffer = buffer;
-        noiseSource.connect(this.audioCtx.destination);
-        noiseSource.start();
-        
-        return this;
+    unmuteCompose() {
+        const now = this.audioCtx.currentTime;
+
+        this.beep(800, 0.05, "square", now)
+            .beep(900, 0.05, "square", now + 0.15);
+    }
+
+    showDebugCompose() {
+        const now = this.audioCtx.currentTime;
+
+        this.beep(900, 0.1, "square", now)
+            .beep(500, 0.1, "square", now + 0.15)
+            .beep(700, 0.1, "square", now + 0.3);
     }
 
 }
 
-function switch_mute() {
-    globalMute = !game.soundGen.mute;
-    const icon = globalMute ? "🔈" : "🔊";
-    game.soundGen.setMute(globalMute);
+function update_debug_icon(status) {
+    const button = document.getElementById("debug-button");
+    if(status) {
+        button.classList.remove("grayscale")
+    } else {
+        button.classList.add("grayscale")
+    }
+}
+
+function update_mute_icon(status) {
+    const icon = status ? "🔈" : "🔊";
     const button = document.getElementById("mute-button");
-    game.soundGen.play("unmute");
     button.innerText = icon;
 }
