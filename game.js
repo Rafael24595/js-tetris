@@ -45,8 +45,7 @@ const MESSAGES = [
     "Nice!",
     "Fabulous!",
     "Great!",
-    "Marvelous!",
-    "Follow the train!"
+    "Marvelous!"
 ];
 
 const MESSAGES_PLUS = [
@@ -61,19 +60,18 @@ let globalDebug = false;
 let game;
 
 window.onload = () => {
-    start_game();
-    update_mute_icon(globalMute);
-    update_debug_icon(globalDebug);
+    startGame();
+    updateMuteIcon(globalMute);
+    updateDebugIcon(globalDebug);
 };
 
-function start_game() {
+function startGame() {
     if (game != undefined) {
-        game.stop_execution();
+        game.stopExecution();
     }
     game = new Tetris(31, 20, 350);
     game.launch();
 }
-
 
 class Tetris {
 
@@ -82,30 +80,30 @@ class Tetris {
         this.execution = undefined;
         this.height = height;
         this.width = width;
-        this.matrix = this.new_table();
+        this.matrix = this.newTable();
         this.block = undefined;
         this.information = new Information();
         this.speed = speed;
-        this.xtreme_difficult = false;
+        this.xtremeDifficult = false;
         this.debug = globalDebug;
-        this.update_mute_icon = update_mute_icon;
-        this.update_debug_icon = update_debug_icon;
+        this.draw = drawGame;
+        this.updateMuteIcon = updateMuteIcon;
+        this.updateDebugIcon = updateDebugIcon;
     }
 
     launch() {
-        this.information.insert_trace("Game started.");
+        this.information.insertTrace("Game started.");
 
         this.soundGen.play("start");
 
-        const block = this.random_block();
-        this.set_block(block);
+        const block = this.randomBlock();
+        this.setBlock(block);
 
-        this.information.change_status(EXECUTION_RUNNING);
+        this.information.changeStatus(EXECUTION_RUNNING);
         window.onkeydown = this.move.bind(this);
 
         this.execution = setInterval(() => {
-
-            this.move_block_y(1);
+            this.moveBlockY(1);
         }, this.speed);
     }
 
@@ -113,232 +111,200 @@ class Tetris {
         this.debug = debug;
     }
 
-    stop_execution() {
+    stopExecution() {
         clearInterval(this.execution);
         this.execution = undefined;
-        this.information.change_status(EXECUTION_STOPPED);
-        this.information.insert_trace("Game stopped.");
-        this.information.swow_message("Game Over!");
+        this.information.changeStatus(EXECUTION_STOPPED);
+        this.information.insertTrace("Game stopped.");
+        this.information.swowMessage("Game Over!");
     }
 
     move(event) {
-        if (this.execution != undefined) {
-            if (event.key == "ArrowRight") {
-                this.soundGen.play("move");
-                this.move_block_x(1);
-            }
-            if (event.key == "ArrowLeft") {
-                this.soundGen.play("move");
-                this.move_block_x(-1);
-            }
-            if (event.key == "ArrowDown") {
-                this.soundGen.play("move");
-                this.move_block_y(1);
-            }
-            /*if (event.key == "ArrowUp") {
-                this.move_block_y(-1);
-            }*/
-            if (event.key == " " || event.key == "m") {
-                this.soundGen.play("mirror");
-                this.mirror_block();
-            }
-            if (event.key == "ArrowUp" || event.key == "r") {
-                this.soundGen.play("rotate");
-                this.rotate_block();
-            }
-            if (event.key == "s") {
-                this.switch_mute();
-            }
-            if (event.key == "d") {
-                this.switch_debug();
-            }
+        if (event.key == "Escape") {
+            startGame();
+        }
+        
+        if (this.execution == undefined) {
+            return;
+        }
+
+        if (event.key == "ArrowRight") {
+            this.soundGen.play("move");
+            this.moveBlockX(1);
+        }
+        if (event.key == "ArrowLeft") {
+            this.soundGen.play("move");
+            this.moveBlockX(-1);
+        }
+        if (event.key == "ArrowDown") {
+            this.soundGen.play("move");
+            this.moveBlockY(1);
+        }
+        if (event.key == " " || event.key == "m") {
+            this.soundGen.play("mirror");
+            this.mirrorBlock();
+        }
+        if (event.key == "ArrowUp" || event.key == "r") {
+            this.soundGen.play("rotate");
+            this.rotateBlock();
+        }
+        if (event.key == "s") {
+            this.switchMute();
+        }
+        if (event.key == "d") {
+            this.switchDebug();
         }
     }
 
-    random_block() {
+    randomBlock() {
         const index = Math.floor(Math.random() * BLOCKS.length);
         const color = Math.floor(Math.random() * (9 - 2 + 1)) + 2;
 
-        const middle_block = BLOCKS[index][0].length / 2;
-        const middle_panel = this.width / 2;
-        const position = Math.round(middle_panel - middle_block);
+        const middleBlock = BLOCKS[index][0].length / 2;
+        const middlePanel = this.width / 2;
+        const position = Math.round(middlePanel - middleBlock);
 
         return new Block(BLOCKS[index], color, position, 0);
     }
 
-    draw() {
-        let container = document.getElementById("panel");
-        container.innerHTML = "";
-        let table = document.createElement("table");
-
-        for (const panel_row of this.matrix) {
-            let row = document.createElement("tr");
-            for (const panel_field of panel_row) {
-                let field = document.createElement("td");
-                let value_container = document.createElement("div");
-
-                if (this.debug) {
-                    value_container.textContent = panel_field;
-                    value_container.classList.add("debug-text");
-                }
-
-                value_container.classList.add("color-" + panel_field);
-                value_container.classList.add("block-fragment");
-
-                if (panel_field == 0) {
-                    value_container.classList.add("void");
-                }
-
-                if (panel_field == FIELD_DYNAMIC) {
-                    value_container.classList.add("dynamic");
-                    value_container.classList.add("color-" + this.block.color);
-                }
-
-                field.appendChild(value_container);
-                row.appendChild((field));
-            }
-            table.appendChild(row);
-        }
-
-        container.appendChild(table);
-    }
-
-    set_block(block) {
+    setBlock(block) {
         this.block = block;
-        const blocked = this.update_block();
+        const blocked = this.updateBlock();
         if (blocked == STATUS_COLLISION) {
-            this.clean_block();
+            this.cleanBlock();
             this.soundGen.play("gameover")
-            this.stop_execution();
+            this.stopExecution();
         }
 
         if (blocked != STATUS_COLLISION) {
-            this.information.increment_blocks();
+            this.information.incrementBlocks();
         }
 
-        this.draw();
+        this.draw(this);
     }
 
-    clean_block() {
-        this.update_block(FIELD_VOID)
+    cleanBlock() {
+        this.updateBlock(FIELD_VOID)
     }
 
-    update_block(force_field) {
-        for (const [index_y, row] of this.block.block.entries()) {
-            for (const [index_x, field] of row.entries()) {
-                if (field != 0) {
-                    const height = this.block.y + index_y;
-                    const ok_height = 0 <= height && height < this.height;
-
-                    const width = this.block.x + index_x;
-                    const ok_width = 0 <= width && width < this.width;
-
-                    const is_void = ok_height && this.matrix[this.block.y + index_y][this.block.x + index_x] < 2;
-
-                    if (ok_height && ok_width && is_void) {
-                        const value = force_field != undefined ? force_field : field;
-                        this.matrix[this.block.y + index_y][this.block.x + index_x] = value;
-                    } else {
-                        return STATUS_COLLISION;
-                    }
+    updateBlock(forceField) {
+        for (const [indexY, row] of this.block.block.entries()) {
+            for (const [indexX, field] of row.entries()) {
+                if (field == 0) {
+                    continue;
                 }
+
+                const height = this.block.y + indexY;
+                const okHeight = 0 <= height && height < this.height;
+
+                const width = this.block.x + indexX;
+                const okWidth = 0 <= width && width < this.width;
+
+                const is_void = okHeight && this.matrix[this.block.y + indexY][this.block.x + indexX] < 2;
+
+                if (!okHeight || !okWidth || !is_void) {
+                    return STATUS_COLLISION;
+                }
+
+                const value = forceField != undefined ? forceField : field;
+                this.matrix[this.block.y + indexY][this.block.x + indexX] = value;
             }
         }
         return STATUS_SUCCESS;
     }
 
-    fix_block() {
-        this.update_block(this.block.color);
-        this.block = this.random_block();
-        this.set_block(this.block);
+    fixBlock() {
+        this.updateBlock(this.block.color);
+        this.block = this.randomBlock();
+        this.setBlock(this.block);
     }
 
-    move_block_x(increment) {
-        this.clean_block();
+    moveBlockX(increment) {
+        this.cleanBlock();
         this.block.x = this.block.x + increment
-        if (this.update_block() == STATUS_COLLISION) {
-            this.clean_block();
+        if (this.updateBlock() == STATUS_COLLISION) {
+            this.cleanBlock();
             this.block.x = this.block.x + (increment * - 1)
-            this.update_block();
+            this.updateBlock();
         }
-        this.draw();
+        this.draw(this);
     }
 
-    move_block_y(increment) {
-        this.clean_block();
+    moveBlockY(increment) {
+        this.cleanBlock();
         this.block.y = this.block.y + increment
-        if (this.update_block() != STATUS_COLLISION) {
-            this.draw();
+        if (this.updateBlock() != STATUS_COLLISION) {
+            this.draw(this);
             return;
         }
 
-        this.clean_block();
+        this.cleanBlock();
         this.block.y = this.block.y + (increment * - 1)
-        this.update_block();
+        this.updateBlock();
         if (increment > 0) {
-            this.fix_block();
+            this.fixBlock();
             this.soundGen.play("drop");
-            this.check_rows();
+            this.checkRows();
         }
     }
 
-    rotate_block() {
-        this.clean_block();
+    rotateBlock() {
+        this.cleanBlock();
         const original = this.block;
         this.block = this.block.rotate();
-        if (this.update_block() == STATUS_COLLISION) {
-            this.clean_block();
+        if (this.updateBlock() == STATUS_COLLISION) {
+            this.cleanBlock();
             this.block = original;
-            this.update_block();
+            this.updateBlock();
         }
-        this.draw();
+        this.draw(this);
     }
 
-    mirror_block() {
-        this.clean_block();
+    mirrorBlock() {
+        this.cleanBlock();
         const original = this.block;
         this.block = this.block.mirror();
-        if (this.update_block() == STATUS_COLLISION) {
-            this.clean_block();
+        if (this.updateBlock() == STATUS_COLLISION) {
+            this.cleanBlock();
             this.block = original;
-            this.update_block();
+            this.updateBlock();
         }
-        this.draw();
+        this.draw(this);
     }
 
-    check_rows() {
+    checkRows() {
         for (let index = this.matrix.length - 1; index >= 0; index--) {
             const row = this.matrix[index];
 
-            const status = this.check_row(row);
+            const status = this.checkRow(row);
             if (status == STATUS_KO) {
                 continue;
             }
 
-            this.remove_row(index);
+            this.removeRow(index);
             index = index + 1;
 
-            this.information.increment_score(100 * status);
+            this.information.incrementScore(100 * status);
 
             let message = "";
             if (status == STATUS_OK) {
-                this.information.insert_trace("Line removed.");
+                this.information.insertTrace("Line removed.");
                 const position = Math.floor(Math.random() * MESSAGES.length);
                 message = MESSAGES[position];
                 this.soundGen.play("line");
             }
             if (status == STATUS_OK_PLUS) {
-                this.information.insert_trace("Color line removed.");
+                this.information.insertTrace("Color line removed.");
                 const position = Math.floor(Math.random() * MESSAGES_PLUS.length);
                 message = MESSAGES_PLUS[position];
                 this.soundGen.play("line-color");
             }
 
-            this.information.swow_message(message);
+            this.information.swowMessage(message);
         }
     }
 
-    check_row(row) {
+    checkRow(row) {
         let element;
         for (const field of row) {
             if (element == undefined) {
@@ -347,7 +313,7 @@ class Tetris {
 
             if (element != field) {
                 element = -1;
-                if (this.xtreme_difficult) {
+                if (this.xtremeDifficult) {
                     return STATUS_KO;
                 }
             }
@@ -364,41 +330,41 @@ class Tetris {
         return STATUS_OK_PLUS;
     }
 
-    remove_row(index) {
-        this.clean_block();
+    removeRow(index) {
+        this.cleanBlock();
         this.matrix.splice(index, 1);
-        this.matrix.unshift(this.new_row());
-        this.update_block();
-        this.information.increment_lines();
-        this.draw();
+        this.matrix.unshift(this.newRow());
+        this.updateBlock();
+        this.information.incrementLines();
+        this.draw(this);
     }
 
-    new_table() {
+    newTable() {
         let table = new Array(this.height);
         table.fill([]);
-        return table.map((_, index) => table[index] = this.new_row());
+        return table.map((_, index) => table[index] = this.newRow());
     }
 
-    new_row() {
+    newRow() {
         let row = new Array(this.width);
         row.fill(FIELD_VOID);
         return row;
     }
 
-    switch_mute() {
+    switchMute() {
         globalMute = !this.soundGen.mute;
         this.soundGen.setMute(globalMute);
         this.soundGen.play("unmute");
-        this.update_mute_icon(globalMute);
+        this.updateMuteIcon(globalMute);
     }
 
-    switch_debug() {
+    switchDebug() {
         globalDebug = !this.debug;
         this.setDebug(globalDebug);
-        if(globalDebug) {
+        if (globalDebug) {
             this.soundGen.play("showdebug");
         }
-        this.update_debug_icon(globalDebug);
+        this.updateDebugIcon(globalDebug);
     }
 
 }
@@ -434,7 +400,7 @@ class Block {
         let result = [];
         for (let y = 0; y < this.block.length; y++) {
             let row = [];
-            for (let x = this.block[y].length - 1; x >= 0 ; x--) {
+            for (let x = this.block[y].length - 1; x >= 0; x--) {
                 const value = this.block[y][x];
                 row.push(value);
             }
@@ -443,19 +409,13 @@ class Block {
         return new Block(result, this.color, this.x, this.y);
     }
 
-    rotate_copy() {
-        this.block = this.rotate_copy().block;
+    rotateCopy() {
+        this.block = this.rotateCopy().block;
     }
 
 }
 
 class Information {
-
-    score;
-    blocks;
-    lines;
-    start;
-    traces;
 
     constructor() {
         this.score = 0;
@@ -463,66 +423,41 @@ class Information {
         this.lines = 0;
         this.start = Date.now();
         this.traces = [];
+        this.printData = printData;
     }
 
-    increment_score(increment) {
-        const score_container = document.getElementById("execution-score");
+    incrementScore(increment) {
+        const scoreContainer = document.getElementById("execution-score");
         this.score = this.score + increment;
-        score_container.innerText = this.score;
+        scoreContainer.innerText = this.score;
     }
 
-    change_status(status) {
-        const stauts_container = document.getElementById("execution-status");
-        stauts_container.innerText = status;
+    changeStatus(status) {
+        const stautsContainer = document.getElementById("execution-status");
+        stautsContainer.innerText = status;
     }
 
-    swow_message(message) {
-        const message_container = document.getElementById("execution-message");
-        message_container.innerHTML = message;
+    swowMessage(message) {
+        const messageContainer = document.getElementById("execution-message");
+        messageContainer.innerHTML = message;
         setTimeout(() => {
-            message_container.innerHTML = ""
+            messageContainer.innerHTML = ""
         }, 1000);
     }
 
-    insert_trace(trace) {
+    insertTrace(trace) {
         this.traces.push(trace);
-        this.print_data();
+        this.printData(this);
     }
 
-    increment_blocks() {
+    incrementBlocks() {
         this.blocks = this.blocks + 1;
-        this.print_data();
+        this.printData(this);
     }
 
-    increment_lines() {
+    incrementLines() {
         this.lines = this.lines + 1;
-        this.print_data();
-    }
-
-    print_data() {
-        const score_container = document.getElementById("r-sidebar-body");
-        score_container.innerHTML = "";
-
-        const blocks = document.createElement("span");
-        blocks.classList.add("trace");
-        blocks.textContent = "# Blocks spawned: " + this.blocks;
-
-        score_container.appendChild(blocks);
-
-        const lines = document.createElement("span");
-        lines.classList.add("trace");
-        lines.textContent = "# Lines removed: " + this.lines;
-
-        score_container.appendChild(lines);
-
-        score_container.appendChild(document.createElement("br"));
-
-        for (const message of this.traces) {
-            const node = document.createElement("span");
-            node.classList.add("trace");
-            node.innerHTML = "&nbsp;&nbsp;> " + message;
-            score_container.appendChild(node);
-        }
+        this.printData(this);
     }
 
 }
@@ -540,7 +475,7 @@ class SoundGenerator {
     }
 
     play(type) {
-        if(this.mute) {
+        if (this.mute) {
             return;
         }
 
@@ -584,11 +519,11 @@ class SoundGenerator {
         const osc = this.audioCtx.createOscillator();
         const gain = this.audioCtx.createGain();
 
-        if(type == undefined) {
+        if (type == undefined) {
             type = "sine";
         }
 
-        if(when == undefined) {
+        if (when == undefined) {
             when = this.audioCtx.currentTime;
         }
 
@@ -600,7 +535,7 @@ class SoundGenerator {
         osc.connect(gain).connect(this.audioCtx.destination);
         osc.start(when);
         osc.stop(when + duration);
-        
+
         return this;
     }
 
@@ -617,7 +552,7 @@ class SoundGenerator {
         noiseSource.buffer = buffer;
         noiseSource.connect(this.audioCtx.destination);
         noiseSource.start(when);
-        
+
         return this;
     }
 
@@ -633,7 +568,7 @@ class SoundGenerator {
         osc.connect(gain).connect(this.audioCtx.destination);
         osc.start();
         osc.stop(this.audioCtx.currentTime + duration);
-        
+
         return this;
     }
 
@@ -650,7 +585,7 @@ class SoundGenerator {
         osc.connect(gain).connect(this.audioCtx.destination);
         osc.start();
         osc.stop(this.audioCtx.currentTime + duration);
-        
+
         return this;
     }
 
@@ -679,16 +614,79 @@ class SoundGenerator {
 
 }
 
-function update_debug_icon(status) {
+function drawGame(tetris) {
+    let container = document.getElementById("panel");
+    container.innerHTML = "";
+    let table = document.createElement("table");
+
+    for (const panelRow of tetris.matrix) {
+        let row = document.createElement("tr");
+        for (const panelField of panelRow) {
+            let field = document.createElement("td");
+            let valueContainer = document.createElement("div");
+
+            if (tetris.debug) {
+                valueContainer.textContent = panelField;
+                valueContainer.classList.add("debug-text");
+            }
+
+            valueContainer.classList.add("color-" + panelField);
+            valueContainer.classList.add("block-fragment");
+
+            if (panelField == 0) {
+                valueContainer.classList.add("void");
+            }
+
+            if (panelField == FIELD_DYNAMIC) {
+                valueContainer.classList.add("dynamic");
+                valueContainer.classList.add("color-" + tetris.block.color);
+            }
+
+            field.appendChild(valueContainer);
+            row.appendChild((field));
+        }
+        table.appendChild(row);
+    }
+
+    container.appendChild(table);
+}
+
+function printData(info) {
+    const scoreContainer = document.getElementById("r-sidebar-body");
+    scoreContainer.innerHTML = "";
+
+    const blocks = document.createElement("span");
+    blocks.classList.add("trace");
+    blocks.textContent = "# Blocks spawned: " + info.blocks;
+
+    scoreContainer.appendChild(blocks);
+
+    const lines = document.createElement("span");
+    lines.classList.add("trace");
+    lines.textContent = "# Lines removed: " + info.lines;
+
+    scoreContainer.appendChild(lines);
+
+    scoreContainer.appendChild(document.createElement("br"));
+
+    for (const message of info.traces) {
+        const node = document.createElement("span");
+        node.classList.add("trace");
+        node.innerHTML = "&nbsp;&nbsp;> " + message;
+        scoreContainer.appendChild(node);
+    }
+}
+
+function updateDebugIcon(status) {
     const button = document.getElementById("debug-button");
-    if(status) {
+    if (status) {
         button.classList.remove("grayscale")
     } else {
         button.classList.add("grayscale")
     }
 }
 
-function update_mute_icon(status) {
+function updateMuteIcon(status) {
     const icon = status ? "🔈" : "🔊";
     const button = document.getElementById("mute-button");
     button.innerText = icon;

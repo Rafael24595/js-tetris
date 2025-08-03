@@ -24,6 +24,7 @@
                     <h3>Keys</h3>
                 </div>
                 <div id="r-sidebar-keys">
+                    <span class="trace">Restart: <b>Escape</b></span>
                     <span class="trace">Move: ⬅️, ⬇️, ➡️</span>
                     <span class="trace">Rotate: ⬆️ or <b>R</b></span>
                     <span class="trace">Mirror: <b>Space</b> or <b>M</b></span>
@@ -39,9 +40,9 @@
             </div>
         </div>
         <div id="button-footer">
-            <button id="debug-button" class="icon-button" onclick="game.switch_debug()">🐞</button>
-            <button id="replay-button" onclick="start_game()">Replay</button>
-            <button id="mute-button" class="icon-button" onclick="game.switch_mute()">🔈</button>
+            <button id="debug-button" class="icon-button" onclick="game.switchDebug()">🐞</button>
+            <button id="replay-button" onclick="startGame()">Restart</button>
+            <button id="mute-button" class="icon-button" onclick="game.switchMute()">🔈</button>
         </div>
     </div>
 </body>
