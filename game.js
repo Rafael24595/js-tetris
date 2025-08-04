@@ -105,6 +105,7 @@ class Tetris {
         this.information.changeStatus(EXECUTION_RUNNING);
         window.onkeydown = this.move.bind(this);
 
+        this.updateTime(this.time);
         this.clock = setInterval(() => {
             this.updateTime(this.time);
         }, 1000);
