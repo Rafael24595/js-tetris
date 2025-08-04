@@ -76,7 +76,9 @@ function startGame() {
 class Tetris {
 
     constructor(height, width, speed) {
+        this.time = Date.now();
         this.soundGen = new SoundGenerator().setMute(globalMute);
+        this.clock = undefined;
         this.execution = undefined;
         this.height = height;
         this.width = width;
@@ -87,6 +89,7 @@ class Tetris {
         this.xtremeDifficult = false;
         this.debug = globalDebug;
         this.draw = drawGame;
+        this.updateTime = updateTime;
         this.updateMuteIcon = updateMuteIcon;
         this.updateDebugIcon = updateDebugIcon;
     }
@@ -102,6 +105,10 @@ class Tetris {
         this.information.changeStatus(EXECUTION_RUNNING);
         window.onkeydown = this.move.bind(this);
 
+        this.clock = setInterval(() => {
+            this.updateTime(this.time);
+        }, 1000);
+
         this.execution = setInterval(() => {
             this.moveBlockY(1);
         }, this.speed);
@@ -113,6 +120,7 @@ class Tetris {
 
     stopExecution() {
         clearInterval(this.execution);
+        clearInterval(this.clock);
         this.execution = undefined;
         this.information.changeStatus(EXECUTION_STOPPED);
         this.information.insertTrace("Game stopped.");
@@ -273,6 +281,8 @@ class Tetris {
     }
 
     checkRows() {
+        const multiplier = 0.5;
+        let linesMultiplier = 1;
         for (let index = this.matrix.length - 1; index >= 0; index--) {
             const row = this.matrix[index];
 
@@ -284,20 +294,31 @@ class Tetris {
             this.removeRow(index);
             index = index + 1;
 
-            this.information.incrementScore(100 * status);
+            this.information.incrementScore(100 * status * linesMultiplier);
+
+            let messageMultiplier = "";
+            if (linesMultiplier > 1) {
+                messageMultiplier = ` x${linesMultiplier}`;
+            }
 
             let message = "";
             if (status == STATUS_OK) {
-                this.information.insertTrace("Line removed.");
+                this.information.insertTrace(`Line removed${messageMultiplier}.`);
                 const position = Math.floor(Math.random() * MESSAGES.length);
                 message = MESSAGES[position];
                 this.soundGen.play("line");
+                if(linesMultiplier < 3.5) {
+                    linesMultiplier += multiplier;
+                }
             }
             if (status == STATUS_OK_PLUS) {
-                this.information.insertTrace("Color line removed.");
+                this.information.insertTrace(`Color line removed${messageMultiplier}.`);
                 const position = Math.floor(Math.random() * MESSAGES_PLUS.length);
                 message = MESSAGES_PLUS[position];
                 this.soundGen.play("line-color");
+                if(linesMultiplier < 3.5) {
+                    linesMultiplier += multiplier * 2;
+                }
             }
 
             this.information.swowMessage(message);
@@ -675,6 +696,18 @@ function printData(info) {
         node.innerHTML = "&nbsp;&nbsp;> " + message;
         scoreContainer.appendChild(node);
     }
+}
+
+function updateTime(time) {
+    time = Date.now() - time;
+
+    const totalSeconds = Math.floor(time / 1000);
+    const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+    const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+    const seconds = String(totalSeconds % 60).padStart(2, '0');
+
+    const button = document.getElementById("game-time");
+    button.innerText = `${hours}:${minutes}:${seconds}`;
 }
 
 function updateDebugIcon(status) {

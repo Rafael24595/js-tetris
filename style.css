@@ -73,25 +73,29 @@ html, body {
     flex-direction: column;
 }
 
-#r-sidebar-title, #r-sidebar-keys-title {
+#r-sidebar-title, #r-sidebar-keys-title, #r-sidebar-time-title {
     background-color: black;
     color: white;
     margin-bottom: 5px;
     text-align: center;
 }
 
-#r-sidebar-title h3, #r-sidebar-keys-title h3 {
+#r-sidebar-title h3, #r-sidebar-keys-title h3, #r-sidebar-time-title h3 {
     margin: 7px;
 }
 
-.trace {
+.trace, #game-time {
     color: white;
     font-weight: bold;
-    margin-top: 3px;
-    margin-bottom: 3px;
+    margin-top: 1px;
+    margin-bottom: 1px;
 }
 
-#r-sidebar-body, #r-sidebar-keys {
+#game-time {
+    text-align: center;
+}
+
+#r-sidebar-body, #r-sidebar-keys, #r-sidebar-time {
     background-color: black;
     flex: 1 1 auto;
     height: 0px;
@@ -108,7 +112,18 @@ html, body {
     flex-direction: column;
     padding: 10px;
     margin-bottom: 5px;
-    height: 175px;
+    height: 150px;
+}
+
+#r-sidebar-time {
+    background-color: black;
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    margin-bottom: 5px;
+    height: 20px;
+    overflow: hidden;
 }
 
 #panel {
